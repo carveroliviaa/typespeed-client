@@ -51,28 +51,48 @@ function VirtualKeyboard({ nextChar, show }) {
 }
 
 function TypingArea({ text, charStates, currentIndex }) {
+  const scrollRef = useRef(null)
+  const cursorRef = useRef(null)
+
+  useEffect(() => {
+    if (!scrollRef.current || !cursorRef.current) return
+    const container = scrollRef.current
+    const cursor = cursorRef.current
+    // Keep cursor in the upper third of the visible area
+    const target = cursor.offsetTop - container.clientHeight * 0.3
+    container.scrollTop = Math.max(0, target)
+  }, [currentIndex])
+
   return (
-    <div className="font-mono text-lg leading-relaxed select-none p-6 rounded-xl bg-bg border border-bg-border min-h-[120px] cursor-text overflow-x-hidden w-full">
-      <p className="break-words whitespace-pre-wrap m-0">
-        {text.split('').map((ch, i) => {
-          const isCurrent = i === currentIndex
-          let cls = 'text-slate-500'
-          if (i < currentIndex) {
-            cls = charStates[i] === 'correct' ? 'text-accent-green' : 'text-accent-red bg-accent-red/10 rounded'
-          }
-          return (
-            <span
-              key={i}
-              className={`${cls} ${isCurrent ? 'border-l-2 border-primary-light typing-cursor' : ''}`}
-            >
-              {ch}
-            </span>
-          )
-        })}
-      </p>
+    <div className="rounded-xl bg-bg border border-bg-border cursor-text w-full overflow-hidden" style={{ height: '9rem' }}>
+      <div
+        ref={scrollRef}
+        className="font-mono text-lg leading-relaxed select-none p-6 h-full overflow-y-auto"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+      >
+        <p className="break-words whitespace-pre-wrap m-0">
+          {text.split('').map((ch, i) => {
+            const isCurrent = i === currentIndex
+            let cls = 'text-slate-500'
+            if (i < currentIndex) {
+              cls = charStates[i] === 'correct' ? 'text-accent-green' : 'text-accent-red bg-accent-red/10 rounded'
+            }
+            return (
+              <span
+                key={i}
+                ref={isCurrent ? cursorRef : null}
+                className={`${cls} ${isCurrent ? 'border-l-2 border-primary-light typing-cursor' : ''}`}
+              >
+                {ch}
+              </span>
+            )
+          })}
+        </p>
+      </div>
     </div>
   )
 }
+
 
 export default function LessonScreen() {
   const location = useLocation()
