@@ -184,10 +184,10 @@ export default function LessonScreen() {
     }
   }, [typing.isFinished])
 
-  // Focus hidden input on click
-  const focusInput = useCallback(() => inputRef.current?.focus(), [])
+  // Focus hidden input on click — preventScroll stops the browser from scrolling the page to the input
+  const focusInput = useCallback(() => inputRef.current?.focus({ preventScroll: true }), [])
 
-  useEffect(() => { focusInput() }, [loading])
+  useEffect(() => { inputRef.current?.focus({ preventScroll: true }) }, [loading])
 
   if (loading) {
     return (
@@ -208,7 +208,6 @@ export default function LessonScreen() {
       {/* Hidden input that captures keyboard events */}
       <input
         ref={inputRef}
-        className="typing-input opacity-0 absolute w-0 h-0 overflow-hidden"
         onKeyDown={typing.handleKeyDown}
         readOnly
         aria-label="Typing input"
@@ -216,6 +215,7 @@ export default function LessonScreen() {
         autoCorrect="off"
         autoCapitalize="off"
         spellCheck="false"
+        style={{ position: 'fixed', top: 0, left: 0, opacity: 0, width: 0, height: 0, pointerEvents: 'none' }}
       />
 
       {/* Header */}
