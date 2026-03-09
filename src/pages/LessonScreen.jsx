@@ -58,18 +58,25 @@ function TypingArea({ text, charStates, currentIndex }) {
     if (!scrollRef.current || !cursorRef.current) return
     const container = scrollRef.current
     const cursor = cursorRef.current
-    // Keep cursor in the upper third of the visible area
-    const target = cursor.offsetTop - container.clientHeight * 0.3
-    container.scrollTop = Math.max(0, target)
+    // getBoundingClientRect gives positions relative to viewport — reliable across all CSS
+    const containerRect = container.getBoundingClientRect()
+    const cursorRect = cursor.getBoundingClientRect()
+    // How far is the cursor from the top of the container (in current scroll state)?
+    const cursorOffsetInContainer = cursorRect.top - containerRect.top
+    // Scroll so the cursor sits at 30% from the top of the visible area
+    const desiredOffset = containerRect.height * 0.3
+    container.scrollTop = Math.max(0, container.scrollTop + cursorOffsetInContainer - desiredOffset)
   }, [currentIndex])
 
   return (
     <div className="rounded-xl bg-bg border border-bg-border cursor-text w-full overflow-hidden" style={{ height: '9rem' }}>
       <div
         ref={scrollRef}
-        className="font-mono text-lg leading-relaxed select-none p-6 h-full overflow-y-auto"
-        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        className="font-mono text-lg leading-relaxed select-none p-6 h-full overflow-y-scroll relative"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
       >
+        {/* Hide webkit scrollbar */}
+        <style>{`.typing-scroll::-webkit-scrollbar{display:none}`}</style>
         <p className="break-words whitespace-pre-wrap m-0">
           {text.split('').map((ch, i) => {
             const isCurrent = i === currentIndex
